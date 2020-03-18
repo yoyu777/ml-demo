@@ -1,0 +1,9 @@
+.ipynb_checkpoints/
+.venv/
+.ipy*
+__py*
+.DS_Store
+dev/logs/*
+dev/data/*
+.vscode
+data/*
