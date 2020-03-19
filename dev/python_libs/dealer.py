@@ -71,7 +71,9 @@ class Dealer:
             ]
         }))
         [self.calculate_deal(order,'stop') for order in stop_triggered]
-        logger.debug('%s stop orders triggered' % len(stop_triggered))
+
+        if(len(stop_triggered)>0):
+            logger.info('%s stop orders triggered' % len(stop_triggered))
 
         limit_triggered=list(self.orders.find({
             "$or":[
@@ -89,8 +91,11 @@ class Dealer:
                 }
             ]
         }))
+
         [self.calculate_deal(order,'limit') for order in limit_triggered]
-        logger.debug('%s limit orders triggered' % len(limit_triggered))
+
+        if(len(limit_triggered)>0):
+            logger.info('%s limit orders triggered' % len(limit_triggered))
 
         to_be_deleted=[doc['_id'] for doc in stop_triggered]+[doc['_id'] for doc in limit_triggered]
         self.orders.delete_many({

@@ -303,18 +303,18 @@ class LightstreamerClient(object):
             elif message.startswith(ERROR_CMD):
                 # terminate the receiving loop on ERROR message
                 receive = False
-                log.error("ERROR")
+                log.error("LightstreamerClient ERROR")
             elif message.startswith(LOOP_CMD):
                 # terminate the the receiving loop on LOOP message
                 # a complete implementation should proceed with a rebind of the session
-                log.debug("LOOP")
+                log.debug("LightstreamerClient LOOP")
                 receive = False
                 rebind = True
             elif message.startswith(SYNC_ERROR_CMD):
                 # terminate the receiving loop on SYNC ERROR message
                 # a complete implementation should create a new session and re-subscribe to all the old items and relative fields
-                log.error("SYNC ERROR")
-                receive = False
+                log.error("LightstreamerClient SYNC ERROR")
+                # receive = False
             elif message.startswith(END_CMD):
                 # terminate the receiving loop on END message
                 # the session has been forcibly closed on the server side a complete implementation should handle the "cause_code" if present
@@ -322,7 +322,7 @@ class LightstreamerClient(object):
                 receive = False
             elif message.startswith("Preamble"):
                 # skipping Preamble message, keep on receiving messages
-                log.debug("Preamble")
+                log.debug("LightstreamerClient Preamble")
             else:
                 self._forward_update_message(message)
 

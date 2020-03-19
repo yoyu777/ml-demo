@@ -23,15 +23,18 @@ data_dir=cwd.joinpath('data')
 log_dir=cwd.joinpath('logs')
 
 import logging
-logger.setLevel(logging.DEBUG)
 
 def merge_log_files(prefix):
     files_to_be_merged=log_dir.joinpath(prefix+'*')
     destination_file=data_dir.joinpath(prefix+'.csv')
     merge_command='cat %s > %s' % (files_to_be_merged,destination_file)
     os.system(merge_command)
+    logger.info('%s* merged into %s' %(files_to_be_merged,destination_file))
 
 def process_data(deal_data_path,price_data_path):
+    logger.info('Starting data processing')
+
+    logger.info('Getting deals from CSV')
     deals=pd.read_csv(deal_data_path,
         header=None,
         names=["timestamp","deal_type","order_type","stop","limit","price","stop_price","limit_price","loss_or_profit"],
@@ -40,8 +43,11 @@ def process_data(deal_data_path,price_data_path):
         }
     )
 
-    qualified_deals=deals.query('order_type=="buy" & stop==10')
+    query='order_type=="buy" & stop==10'
+    logger.info('Getting qualified deals - %s' % query)
+    qualified_deals=deals.query(query)
 
+    logger.info('Getting price from CSV')
     price=pd.read_csv(price_data_path,
         header=None,
         names=["datetime","timestamp","MID_OPEN","BID","OFFER","CHANGE","CHANGE_PCT","HIGH","LOW"],
@@ -51,7 +57,10 @@ def process_data(deal_data_path,price_data_path):
         }
     )
 
+    logger.info('Joining deals with price')
     deals_with_price=pd.merge(qualified_deals, price,how="inner",on="timestamp",sort=True)
+
+    # Calculating MID price, the average of BID and OFFER
     deals_with_price['MID']=(deals_with_price['BID']+deals_with_price['OFFER'])/2
 
     _format='%y-%m-%d %H:%M:%S'
@@ -59,7 +68,8 @@ def process_data(deal_data_path,price_data_path):
     def datetime_to_int(x):
         return int(dt.strptime(x,_format).timestamp())
 
-    from datetime import datetime as dt
+    # Parsing the datetime string to get the timestamp(seconds) to match the price
+    # Note that this timestamp is different from the timestamp of the message
     deals_with_price['datetime_int']=deals_with_price['datetime'].apply(datetime_to_int)
 
     mean_price_each_second=deals_with_price[['datetime','BID','OFFER']].groupby('datetime').mean().reset_index()
@@ -116,7 +126,7 @@ def process_data(deal_data_path,price_data_path):
     validation_data_np=validation_data_set.to_numpy().astype('float32')
     validation_labels_np=validation_labels.to_numpy().astype('float32')
 
-    session=boto3.Session(profile_name='ml-lab')
+    session=boto3.Session()
 
     buf = io.BytesIO()
     smac.write_numpy_to_dense_tensor(buf, training_data_np, training_labels_np)
@@ -161,7 +171,7 @@ class Data_Processor:
         while(1):
             for f_name in os.listdir(log_dir):
                 if f_name.startswith(self.deal_prefix+'.'): 
-                    logger.debug('Found file %s' % f_name)
+                    logger.info('Found file %s' % f_name)
                     merge_log_files(self.deal_prefix)
                     merge_log_files(self.price_prefix)
                     os.remove(log_dir.joinpath(f_name))
