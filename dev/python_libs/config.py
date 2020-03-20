@@ -1,3 +1,5 @@
+import os
+
 IG_BASE_URL='https://demo-api.ig.com/gateway/deal'
 IDENTIFIER="demo2020"
 MINIMUM_STOP=4
@@ -7,4 +9,5 @@ MAXIMUM_LIMIT=100
 POINT_VALUE=0.0001
 THREADS=60
 EPIC="CS.D.GBPUSD.CFD.IP"
-BUCKET='ml-lab-pyspark'
+BUCKET=os.environ['S3_BUCKET_NAME']
+SECRET=os.environ['SECRET_NAME']

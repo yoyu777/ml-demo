@@ -1,0 +1,5 @@
+*outputs.json
+.terraform
+*.tfstate
+*.tfstate.backup
+backend-config.cfg

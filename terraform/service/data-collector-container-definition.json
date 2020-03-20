@@ -1,0 +1,15 @@
+[
+    {
+      "name": "ml-demo",
+      "image": "yoyu777/ml-demo",
+      "cpu": 256,
+      "memory": 512,
+      "memoryReservation":448,
+      "essential": true,
+      "environment" : [
+        { "name" : "LOGLEVEL", "value" : "" },
+        { "name" : "S3_BUCKET_NAME", "value" : "" },
+        { "name" : "SECRET_NAME", "value" : "" }
+      ]
+    }
+]

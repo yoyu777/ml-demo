@@ -5,12 +5,13 @@ import json
 from botocore.exceptions import ClientError
 
 from python_libs.loggers import logger
+from python_libs import config
 
 class Secret_Manager:
     pass
 def get_secret(self):
 
-    secret_name = "ig"
+    secret_name = config.SECRET
     region_name = "eu-west-2"
 
     # Create a Secrets Manager client

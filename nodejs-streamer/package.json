@@ -1,0 +1,17 @@
+{
+  "name": "nodejs-streamer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "yoyu.li",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.643.0",
+    "lightstreamer-client-node": "^8.0.2",
+    "request": "^2.88.2",
+    "request-promise-native": "^1.0.8"
+  }
+}
