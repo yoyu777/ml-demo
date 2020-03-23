@@ -2,6 +2,7 @@ from python_libs.loggers import logger
 from python_libs import config
 import random 
 
+
 class Bidder:
     def __init__(self,id):
         self.id=id

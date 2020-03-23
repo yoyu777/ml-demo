@@ -5,9 +5,9 @@ AWS.config.region=process.env.REGION;
 
 
 class Secret{
-    constructor(){
+    constructor(config){
         this.secretsmanager = new AWS.SecretsManager({apiVersion: '2017-10-17'});
-        this.secret_name=process.env.SECRET_NAME;
+        this.secret_name=config.SECRET_NAME;
     }
 
     async fetch(){

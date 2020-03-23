@@ -19,8 +19,13 @@ if(LOGLEVEL in logLevels){
     console.log('LOGLEVEL not set, default to WARN');
 }
 
-const formatter=(level,message)=>util.format('%s - %s - %s - %s', 
+
+const verbose_formatter=(level,message)=>util.format('%s - %s - %s - %s', 
         level, require.main.filename,new Date(Date.now()).toISOString(),message)
+const simple_formatter=(level,message)=>util.format('%s - %s', level,message)
+
+const formatter=simple_formatter
+
 
 console.debug=(x)=>{
     if(logLevel>=logLevels.DEBUG){

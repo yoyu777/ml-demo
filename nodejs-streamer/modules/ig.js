@@ -1,18 +1,16 @@
 const request=require('request-promise-native')
 
-IG_ENDPOINT=process.env.IG_ENDPOINT
-
-
 
 class IG{
-    constructor(identifier,password,api_key){
+    constructor(config,identifier,password,api_key){
+        this.IG_BASE_URL=config.IG_BASE_URL
         this.identifier=identifier
         this.password=password
         this.api_key=api_key
     }
     async login(){
         let options = {
-            uri:IG_ENDPOINT+'deal/session',
+            uri:this.IG_BASE_URL+'/session',
             method: 'POST',
             headers: {
               'Content-Type': 'application/json; charset=UTF-8',

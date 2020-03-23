@@ -16,17 +16,20 @@ class Stream_Client{
              },
             onStatusChange: function(newStatus) {         
                 console.info(newStatus);
+            },
+            onServerError:(e)=>{
+                console.error(e)
             }
           });
         this.client.connect()
     }
 
-    subscribe(epic){
+    subscribe(epic,message_listener){
         // IG Streaming API Reference:
         // https://labs.ig.com/streaming-api-reference
         this.subscription = new ls.Subscription(
             "MERGE",
-            [epic],
+            ['MARKET:'+epic],
             ["UPDATE_TIME","BID","OFFER","CHANGE","CHANGE_PCT","MID_OPEN","HIGH","LOW","MARKET_STATE","MARKET_DELAY"]
         );
         
@@ -37,8 +40,24 @@ class Stream_Client{
             onUnsubscription: function() {
               console.info("UNSUBSCRIBED");
             },
-            onItemUpdate: function(obj) {
-              console.info(obj.getValue("stock_name") + ": " + obj.getValue("last_price"));
+            onSubscriptionError: function (code, message) {
+                console.log('subscription failure: ' + code + " message: " + message);
+             },
+            onItemUpdate: function(item_object) {
+              // Lightstreamer published some data
+              let item_json={}
+              item_object.forEachField(function (fieldName, fieldPos, value) {
+                item_json[fieldName]=value
+                // Alternatively, if the field is JSON, such as in a confirm message:
+                // var confirm = JSON.parse(value);
+                // console.log('json: ' + confirm.dealId)
+              })
+
+              const float_fields=['BID','OFFER','CHANGE','CHANGE_PCT','MID_OPEN','HIGH','LOW']
+              float_fields.every(float_filed=>item_json[float_filed]=parseFloat(item_json[float_filed]))
+            
+              console.debug(JSON.stringify(item_json))
+              message_listener(item_json)
             }
           });
           
