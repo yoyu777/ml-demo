@@ -210,7 +210,7 @@ class Dealer{
     }
 
     export_fulfilled(){
-        console.debug('Checking fulfilled records...')
+        console.info('Checking fulfilled records...')
         let fulfilled=this.orders.find({
           fulfilled:true,
           exported:{$in: [null, false]}
