@@ -3,3 +3,4 @@
 *.tfstate
 *.tfstate.backup
 backend-config.cfg
+data-collector-container-definition.json

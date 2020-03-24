@@ -22,8 +22,8 @@ with open(cwd.joinpath('service/terraform.tfvars'), 'a') as tfvars:
 
 # Updating ECS Task definition file
 
-definition_file=open(cwd.joinpath('service/data-collector-container-definition.json'),'r')
-definition=json.load(definition_file)
+definition_template=open(cwd.joinpath('service/template-data-collector-container-definition.json'),'r')
+definition=json.load(definition_template)
 
 definition[0]["name"]="%s-%s" %(config.get('main','PROJECT_NAME'),config.get('main','ENVIRONMENT'))
 
@@ -50,7 +50,7 @@ definition[0]["environment"].append({
 definition[0]["LogConfiguration"]["Options"]["awslogs-region"]=config.get('main','REGION')
 definition[0]["LogConfiguration"]["Options"]["awslogs-group"]='/ecs/%s' % definition[0]["name"]
 
-definition_file.close()
+definition_template.close()
 
 with open(cwd.joinpath('service/data-collector-container-definition.json'),'w') as definition_file:
     json.dump(definition, definition_file)

@@ -1,0 +1,21 @@
+[
+    {
+        "name": "",
+        "image": "yoyu777/ml-demo",
+        "cpu": 256,
+        "memory": 512,
+        "memoryReservation": 448,
+        "essential": true,
+        "environment": [
+            
+        ],
+        "LogConfiguration": {
+            "LogDriver": "awslogs",
+            "Options": {
+                "awslogs-region": "",
+                "awslogs-group": "",
+                "awslogs-stream-prefix": "ecs"
+            }
+        }
+    }
+]
