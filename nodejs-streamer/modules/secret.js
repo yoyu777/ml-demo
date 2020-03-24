@@ -9,11 +9,11 @@ class Secret{
     }
 
     async fetch(){
-        var params = {
-            SecretId: this.secret_name,
-        };
-
         try{
+            var params = {
+                SecretId: this.secret_name,
+            };
+
             let response= await this.secretsmanager.getSecretValue(params).promise()
             const secrets=JSON.parse(response.SecretString)
             this.ig_identifier=secrets.ig_identifier

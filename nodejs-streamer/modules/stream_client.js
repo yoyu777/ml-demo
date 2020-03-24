@@ -44,20 +44,24 @@ class Stream_Client{
                 console.log('subscription failure: ' + code + " message: " + message);
              },
             onItemUpdate: function(item_object) {
-              // Lightstreamer published some data
-              let item_json={}
-              item_object.forEachField(function (fieldName, fieldPos, value) {
-                item_json[fieldName]=value
-                // Alternatively, if the field is JSON, such as in a confirm message:
-                // var confirm = JSON.parse(value);
-                // console.log('json: ' + confirm.dealId)
-              })
+              try{
+                  // Lightstreamer published some data
+                  let item_json={}
+                  item_object.forEachField(function (fieldName, fieldPos, value) {
+                    item_json[fieldName]=value
+                    // Alternatively, if the field is JSON, such as in a confirm message:
+                    // var confirm = JSON.parse(value);
+                    // console.log('json: ' + confirm.dealId)
+                  })
 
-              const float_fields=['BID','OFFER','CHANGE','CHANGE_PCT','MID_OPEN','HIGH','LOW']
-              float_fields.every(float_filed=>item_json[float_filed]=parseFloat(item_json[float_filed]))
-            
-              console.debug(JSON.stringify(item_json))
-              message_listener(item_json)
+                  const float_fields=['BID','OFFER','CHANGE','CHANGE_PCT','MID_OPEN','HIGH','LOW']
+                  float_fields.every(float_filed=>item_json[float_filed]=parseFloat(item_json[float_filed]))
+                
+                  console.debug(JSON.stringify(item_json))
+                  message_listener(item_json)
+              }catch(e){
+                console.error(e)
+              }
             }
           });
           

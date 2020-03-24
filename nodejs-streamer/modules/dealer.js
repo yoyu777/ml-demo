@@ -2,17 +2,21 @@ const MongoClient = require('mongodb').MongoClient;
 
 class Dealer{
     constructor(config){
-        this.MAX_RECORDS=config.MAX_RECORDS? config.MAX_RECORDS:100;
-        this.S3_BUCKET_NAME=config.S3_BUCKET_NAME;
-        this.client = new MongoClient(config.MONGODB_URL,{ useUnifiedTopology: true });
-        // To use the new Server Discover and Monitoring engine, 
-        // pass option { useUnifiedTopology: true } to the MongoClient constructor.
+        try{
+            this.MAX_RECORDS=config.MAX_RECORDS? config.MAX_RECORDS:100;
+            this.S3_BUCKET_NAME=config.S3_BUCKET_NAME;
+            this.client = new MongoClient(config.MONGODB_URL,{ useUnifiedTopology: true });
+            // To use the new Server Discover and Monitoring engine, 
+            // pass option { useUnifiedTopology: true } to the MongoClient constructor.
+            
+            this.POINT_VALUE=config.POINT_VALUE;
+            
+            const AWS=require('aws-sdk')
+            this.s3 = new AWS.S3({apiVersion: '2006-03-01'});
+        }catch(e){
+            console.error(e)
+        }
         
-        this.POINT_VALUE=config.POINT_VALUE;
-        
-        const AWS=require('aws-sdk')
-        this.s3 = new AWS.S3({apiVersion: '2006-03-01'});
-
     }
     async connect(){
         try{
@@ -64,20 +68,18 @@ class Dealer{
     
     process_order(order,bid,offer,timestamp){
         
-        
-        order.timestamp=timestamp;
-        
-        if (order.type=='buy'){
-            order.price=offer;
-            order.stop_price=offer-order.stop * this.POINT_VALUE;
-            order.limit_price=offer+order.limit * this.POINT_VALUE;
-        }else{
-            order.price=bid;
-            order.stop_price=bid+order.stop * this.POINT_VALUE;
-            order.limit_price=bid-order.limit * this.POINT_VALUE;
-        }
-        
         try{
+            order.timestamp=timestamp;
+        
+            if (order.type=='buy'){
+                order.price=offer;
+                order.stop_price=offer-order.stop * this.POINT_VALUE;
+                order.limit_price=offer+order.limit * this.POINT_VALUE;
+            }else{
+                order.price=bid;
+                order.stop_price=bid+order.stop * this.POINT_VALUE;
+                order.limit_price=bid-order.limit * this.POINT_VALUE;
+            }
             this.orders.insertOne(order);
             console.debug('Successfully created an order')
         }
@@ -198,8 +200,8 @@ class Dealer{
         // Message example: {"UPDATE_TIME":"11:03:40","BID":"5918.21","OFFER":"5954.21",
         // "CHANGE":"-31.32","CHANGE_PCT":"-0.52","MID_OPEN":"5967.53","HIGH":"6177.00",
         // "LOW":"5885.50","MARKET_STATE":"TRADEABLE","MARKET_DELAY":"0"}
-        message.timestamp=timestamp;
         try{
+            message.timestamp=timestamp;
             this.price.insertOne(message);
             console.debug('Successfully logged a price')
         }
@@ -210,7 +212,8 @@ class Dealer{
     }
 
     export_fulfilled(){
-        console.info('Checking fulfilled records...')
+        try{
+            console.info('Checking fulfilled records...')
         let fulfilled=this.orders.find({
           fulfilled:true,
           exported:{$in: [null, false]}
@@ -266,6 +269,10 @@ class Dealer{
             .catch(e=>{
                 console.error(e)
             })
+        }catch(e){
+            console.error(e)
+        }
+        
     }
 }
 
