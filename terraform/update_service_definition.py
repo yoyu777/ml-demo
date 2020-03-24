@@ -13,6 +13,8 @@ base_layer_outputs=json.load(open(cwd.joinpath('base/outputs.json')))
 
 S3_BUCKET_NAME=base_layer_outputs['S3_BUCKET_NAME']['value']
 SECRET_ARN=base_layer_outputs['SECRET_ARN']['value']
+SECRET_NAME=base_layer_outputs['SECRET_NAME']['value']
+
 
 with open(cwd.joinpath('service/terraform.tfvars'), 'a') as tfvars:
     tfvars.write('S3_BUCKET_NAME = "%s"\n' % S3_BUCKET_NAME)
@@ -41,8 +43,8 @@ definition[0]["environment"].append({
 })
 
 definition[0]["environment"].append({
-    "name": "SECRET_ARN",
-    "value": SECRET_ARN
+    "name": "SECRET_NAME",
+    "value": SECRET_NAME
 })
 
 definition[0]["LogConfiguration"]["Options"]["awslogs-region"]=config.get('main','REGION')

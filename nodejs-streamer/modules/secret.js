@@ -2,8 +2,6 @@ const AWS=require('aws-sdk')
 
 AWS.config.region=process.env.REGION;
 
-
-
 class Secret{
     constructor(config){
         this.secretsmanager = new AWS.SecretsManager({apiVersion: '2017-10-17'});
