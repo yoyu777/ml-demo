@@ -13,38 +13,39 @@ const Bidder=require('./modules/bidder')
 
 
 const main=async ()=>{
-    await secret.fetch()
+    try{
+        await secret.fetch()
     
-    const dealer= new  Dealer(config)
-    await dealer.connect()
+        const dealer= new  Dealer(config)
+        await dealer.connect()
 
-    const bidder=new Bidder({order_type:'buy'},config)
+        const bidder=new Bidder({order_type:'buy'},config)
 
-    const ig=new IG(config,secret.ig_identifier,secret.ig_password,secret.ig_api_key)
-    const session = await ig.login()
+        const ig=new IG(config,secret.ig_identifier,secret.ig_password,secret.ig_api_key)
+        const session = await ig.login()
+        
+        const stream_client=new Stream_Client(session.lightstreamerEndpoint,ig.identifier,ig.cst,ig.x_security_token)
+        stream_client.subscribe("CS.D.BITCOIN.CFD.IP",(message)=>{
+            console.debug('Received a message')
+            
+            const timestamp=Date.now()
+            
+            dealer.log_price(message,timestamp);
+            
+            let order=bidder.order()
+            dealer.process_order(order,message.BID,message.OFFER,timestamp);
+            
+            dealer.resolve_orders(message.BID,message.OFFER)
+            
+            console.debug('Finished processing the message')
+        })
+        
+        console.log('OK')
+
+    }catch(e){
+        console.error(e)
+    }
     
-    const stream_client=new Stream_Client(session.lightstreamerEndpoint,ig.identifier,ig.cst,ig.x_security_token)
-    stream_client.subscribe("CS.D.BITCOIN.CFD.IP",(message)=>{
-        console.debug('Received a message')
-        
-        const timestamp=Date.now()
-        
-        dealer.log_price(message,timestamp);
-        
-        let order=bidder.order()
-        dealer.process_order(order,message.BID,message.OFFER,timestamp);
-        
-        dealer.resolve_orders(message.BID,message.OFFER)
-        
-        console.debug('Finished processing the message')
-    })
-    
-    
-
-
-    
-    console.log('OK')
-
 
 }
 

@@ -2,7 +2,7 @@ WORKSPACE=$(pwd)
 
 cd $WORKSPACE
 
-# Checking if state-bucket/outputs.json exists
+echo "Checking if state-bucket/outputs.json exists"
 
 if [ -f "state-bucket/outputs.json" ]; then
     echo "State bucekt outputs.json exists. Using state-bucket/outputs.json"
@@ -15,14 +15,29 @@ else
     terraform output -json  > outputs.json
 fi
 
-# Creating terraform.tfvars and backend-config.cfg files for base and service
+echo "Creating terraform.tfvars and backend-config.cfg files for base and service"
 cd $WORKSPACE
 python create_tf_config_files.py
 
+echo "Initialising base and service layers"
 cd $WORKSPACE/base
 terraform init -backend-config=backend-config.cfg
 
 cd $WORKSPACE/service
 terraform init -backend-config=backend-config.cfg
+
+echo "Deploying the base layer"
+cd $WORKSPACE/base
+terraform apply -auto-approve
+terraform output -json  > outputs.json
+
+echo "Updating service layer definitions"
+cd $WORKSPACE
+python update_service_definition.py
+
+echo "Deploying the service layer"
+cd $WORKSPACE/service
+terraform apply -auto-approve
+terraform output -json  > outputs.json
 
 echo "Done"

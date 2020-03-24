@@ -1,3 +1,5 @@
 PROJECT_NAME = "mldemo"
 ENVIRONMENT = "dev"
 REGION = "eu-west-2"
+S3_BUCKET_NAME = "bucket-mldemo-dev-15defe84cd9c6b5c"
+SECRET_ARN = "arn:aws:secretsmanager:eu-west-2:814948925568:secret:secret-mldemo-dev-15defe84cd9c6b5c-naYAkA"
