@@ -9,6 +9,3 @@ provider "aws" {
   region  = var.REGION
 }
 
-resource "random_id" "self" {
-  byte_length = 8
-}

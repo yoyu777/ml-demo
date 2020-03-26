@@ -12,13 +12,18 @@ config.read(cwd.parent.joinpath('project_config.cfg'))
 base_layer_outputs=json.load(open(cwd.joinpath('base/outputs.json')))
 
 S3_BUCKET_NAME=base_layer_outputs['S3_BUCKET_NAME']['value']
+S3_BUCKET_ARN=base_layer_outputs['S3_BUCKET_ARN']['value']
+GLUE_BUCKET_NAME=base_layer_outputs['GLUE_BUCKET_NAME']['value']
+
 SECRET_ARN=base_layer_outputs['SECRET_ARN']['value']
 SECRET_NAME=base_layer_outputs['SECRET_NAME']['value']
 
 
 with open(cwd.joinpath('service/terraform.tfvars'), 'a') as tfvars:
     tfvars.write('S3_BUCKET_NAME = "%s"\n' % S3_BUCKET_NAME)
+    tfvars.write('S3_BUCKET_ARN = "%s"\n' % S3_BUCKET_ARN)
     tfvars.write('SECRET_ARN = "%s"\n' % SECRET_ARN)
+    tfvars.write('GLUE_BUCKET_NAME = "%s"\n' % GLUE_BUCKET_NAME)
 
 # Updating ECS Task definition file
 

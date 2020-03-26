@@ -1,13 +1,13 @@
 resource "aws_ecs_task_definition" "data_collector" {
-  family = "ml-demo"
-  container_definitions = "${file("data-collector-container-definition.json")}"
-  task_role_arn = aws_iam_role.task_role.arn
-  execution_role_arn = aws_iam_role.task_role.arn
-  network_mode = "awsvpc" # Required by Fargate
-  cpu = 256
-  memory = 512
+  family                   = "ml-demo"
+  container_definitions    = "${file("data-collector-container-definition.json")}"
+  task_role_arn            = aws_iam_role.task_role.arn
+  execution_role_arn       = aws_iam_role.task_role.arn
+  network_mode             = "awsvpc" # Required by Fargate
+  cpu                      = 256
+  memory                   = 512
   requires_compatibilities = ["FARGATE"]
-  tags={
+  tags = {
     Project     = var.PROJECT_NAME
     Environment = var.ENVIRONMENT
   }
@@ -16,7 +16,7 @@ resource "aws_ecs_task_definition" "data_collector" {
 resource "aws_cloudwatch_log_group" "data_collector" {
   name = "/ecs/${var.PROJECT_NAME}-${var.ENVIRONMENT}"
 
-  tags={
+  tags = {
     Project     = var.PROJECT_NAME
     Environment = var.ENVIRONMENT
   }
@@ -29,7 +29,7 @@ resource "aws_iam_role" "task_role" {
 
   assume_role_policy = "${data.aws_iam_policy_document.task_role_assume_role_policy.json}"
 
-  tags={
+  tags = {
     Project     = var.PROJECT_NAME
     Environment = var.ENVIRONMENT
   }
@@ -53,7 +53,7 @@ resource "aws_iam_policy" "task_role_policy" {
 }
 
 data "aws_iam_policy_document" "task_role_policy_document" {
- statement {
+  statement {
     sid = "s3"
 
     actions = [
@@ -74,10 +74,10 @@ data "aws_iam_policy_document" "task_role_policy_document" {
     ]
 
     resources = [
-      "${var.SECRET_ARN}"    
+      "${var.SECRET_ARN}"
     ]
   }
-  
+
 
   statement {
     sid = "logs"

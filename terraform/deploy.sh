@@ -36,8 +36,13 @@ cd $WORKSPACE
 python update_service_definition.py
 
 echo "Deploying the service layer"
+
 cd $WORKSPACE/service
 terraform apply -auto-approve
 terraform output -json  > outputs.json
+
+echo "Copying the Glue ETL scripts to S3"
+cd $WORKSPACE/
+sh copy_glue_etl_scripts.sh
 
 echo "Done"

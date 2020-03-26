@@ -20,12 +20,8 @@ variable "REGION" {
     default="eu-west-2"
 }
 
-resource "random_id" "self" {
-  byte_length = 8
-}
-
 resource "aws_s3_bucket" "state_bucket" {
-  bucket = "tf-state-bucket-${var.PROJECT_NAME}-${random_id.self.hex}"
+  bucket_prefix = "tf-state-bucket-${var.PROJECT_NAME}-"
 
   tags = {
     Project     = var.PROJECT_NAME

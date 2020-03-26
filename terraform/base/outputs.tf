@@ -2,6 +2,14 @@ output "S3_BUCKET_NAME" {
   value = aws_s3_bucket.base_bucket.bucket
 }
 
+output "S3_BUCKET_ARN" {
+  value = aws_s3_bucket.base_bucket.arn
+}
+
+output "GLUE_BUCKET_NAME" {
+  value = aws_s3_bucket.glue_bucket.bucket
+}
+
 output "SECRET_ARN" {
     value=aws_secretsmanager_secret.secret.arn
 }
