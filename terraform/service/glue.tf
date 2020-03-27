@@ -1,6 +1,6 @@
 resource "aws_glue_job" "etl_job" {
   name     = "${var.PROJECT_NAME}-${var.ENVIRONMENT}-Glue-ETL-Job"
-  role_arn = "${aws_iam_role.glue_job_role.arn}"
+  role_arn = module.glue_job_role.arn
 
   command {
     name            = "pythonshell"
@@ -28,6 +28,9 @@ resource "aws_glue_job" "etl_job" {
     Environment = var.ENVIRONMENT
   }
 
+
+  
+
 }
 
 resource "aws_cloudwatch_log_group" "glue_etl" {
@@ -40,30 +43,12 @@ resource "aws_cloudwatch_log_group" "glue_etl" {
 }
 
 # Glue job role definition
+module "glue_job_role" {
+  source = "../modules/iam_role"
 
-resource "aws_iam_role" "glue_job_role" {
-  name = "${var.PROJECT_NAME}-${var.ENVIRONMENT}-Glue-Job-Role"
-
-  assume_role_policy = "${data.aws_iam_policy_document.glue_job_role_assume_role_policy.json}"
-
-  tags = {
-    Project     = var.PROJECT_NAME
-    Environment = var.ENVIRONMENT
-  }
-}
-
-data "aws_iam_policy_document" "glue_job_role_assume_role_policy" {
-  statement {
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["glue.amazonaws.com"]
-    }
-  }
-}
-
-resource "aws_iam_role_policy_attachment" "glue_job_role_policy_attachment" {
-  role       = "${aws_iam_role.glue_job_role.name}"
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"
+  PROJECT_NAME = var.PROJECT_NAME
+  ENVIRONMENT  = var.ENVIRONMENT
+  name         = "Glue-Job-Role"
+  services     = ["glue.amazonaws.com"]
+  policy_arns  = ["arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"]
 }

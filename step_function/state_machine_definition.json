@@ -1,16 +1,232 @@
 {
     "Comment": "A Hello World example of the Amazon States Language using Pass states",
-    "StartAt": "Hello",
+    "StartAt": "Input_File_Checker",
     "States": {
-      "Hello": {
-        "Type": "Pass",
-        "Result": "Hello",
-        "Next": "World"
-      },
-      "World": {
-        "Type": "Pass",
-        "Result": "World",
-        "End": true
-      }
+        "Input_File_Checker": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+                "FunctionName": "mldemo-dev-Input-File-Checker",
+                "Payload": {
+                    "Input.$": "$"
+                }
+            },
+            "Retry": [
+                {
+                    "ErrorEquals": [
+                        "InsufficientKeys"
+                    ],
+                    "IntervalSeconds": 5,
+                    "MaxAttempts": 4,
+                    "BackoffRate": 2
+                }
+            ],
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.ALL"
+                    ],
+                    "Next": "Failure"
+                }
+            ],
+            "Next": "Glue_StartJobRun",
+            "OutputPath": "$.Payload"
+        },
+        "Glue_StartJobRun": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::glue:startJobRun.sync",
+            "InputPath": "$",
+            "Parameters": {
+                "JobName": "mldemo-dev-Glue-ETL-Job",
+                "Arguments": {
+                    "--deal_data_key.$": "$.deals",
+                    "--price_data_key.$": "$.price"
+                }
+            },
+            "Next": "Sagemaker_CreateHyperParameterTuningJob"
+        },
+        "Sagemaker_CreateHyperParameterTuningJob": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sagemaker:createHyperParameterTuningJob.sync",
+            "InputPath": "$",
+            "Parameters": {
+                "HyperParameterTuningJobName": "$$.Execution.Name",
+                "HyperParameterTuningJobConfig": {
+                    "ParameterRanges": {
+                        "CategoricalParameterRanges": [
+                            {
+                                "Name": "use_bias",
+                                "Values": [
+                                    "true",
+                                    "false"
+                                ]
+                            }
+                        ],
+                        "ContinuousParameterRanges": [
+                            {
+                                "MaxValue": "1",
+                                "MinValue": "0.0000001",
+                                "ScalingType": "Logarithmic",
+                                "Name": "l1"
+                            },
+                            {
+                                "MaxValue": "1",
+                                "MinValue": "0.00001",
+                                "ScalingType": "Logarithmic",
+                                "Name": "learning_rate"
+                            },
+                            {
+                                "MaxValue": "10000",
+                                "MinValue": "0.00001",
+                                "ScalingType": "Logarithmic",
+                                "Name": "positive_example_weight_mult"
+                            },
+                            {
+                                "MaxValue": "1",
+                                "MinValue": "0.0000001",
+                                "ScalingType": "Logarithmic",
+                                "Name": "wd"
+                            }
+                        ],
+                        "IntegerParameterRanges": [
+                            {
+                                "MaxValue": "1000",
+                                "MinValue": "100",
+                                "ScalingType": "Logarithmic",
+                                "Name": "mini_batch_size"
+                            }
+                        ]
+                    },
+                    "ResourceLimits": {
+                        "MaxNumberOfTrainingJobs": 10,
+                        "MaxParallelTrainingJobs": 2
+                    },
+                    "Strategy": "Bayesian",
+                    "HyperParameterTuningJobObjective": {
+                        "MetricName": "test:binary_f_beta",
+                        "Type": "Maximize"
+                    }
+                },
+                "TrainingJobDefinition": {
+                    "AlgorithmSpecification": {
+                        "TrainingImage": "644912444149.dkr.ecr.eu-west-2.amazonaws.com/linear-learner:1",
+                        "TrainingInputMode": "File"
+                    },
+                    "InputDataConfig": [
+                        {
+                            "ChannelName": "train",
+                            "CompressionType": "None",
+                            "DataSource": {
+                                "S3DataSource": {
+                                    "S3DataDistributionType": "FullyReplicated",
+                                    "S3DataType": "S3Prefix",
+                                    "S3Uri": "s3://bucket-mldemo-dev-20200327141354666900000003/training_data.io"
+                                }
+                            }
+                        },
+                        {
+                            "ChannelName": "test",
+                            "CompressionType": "None",
+                            "DataSource": {
+                                "S3DataSource": {
+                                    "S3DataDistributionType": "FullyReplicated",
+                                    "S3DataType": "S3Prefix",
+                                    "S3Uri": "s3://bucket-mldemo-dev-20200327141354666900000003/test_data.io"
+                                }
+                            }
+                        },
+                        {
+                            "ChannelName": "validation",
+                            "CompressionType": "None",
+                            "DataSource": {
+                                "S3DataSource": {
+                                    "S3DataDistributionType": "FullyReplicated",
+                                    "S3DataType": "S3Prefix",
+                                    "S3Uri": "s3://bucket-mldemo-dev-20200327141354666900000003/validation_data.io"
+                                }
+                            }
+                        }
+                    ],
+                    "OutputDataConfig": {
+                        "S3OutputPath": "s3://bucket-mldemo-dev-20200327141354666900000003/output"
+                    },
+                    "ResourceConfig": {
+                        "InstanceCount": 1,
+                        "InstanceType": "ml.c4.xlarge",
+                        "VolumeSizeInGB": 10
+                    },
+                    "RoleArn": "",
+                    "StaticHyperParameters": {
+                        "feature_dim": "605",
+                        "epochs": "15",
+                        "normalize_data": "true",
+                        "normalize_label": "false",
+                        "predictor_type": "binary_classifier",
+                        "binary_classifier_model_selection_criteria": "precision_at_target_recall",
+                        "target_recall": "0.25"
+                    },
+                    "StoppingCondition": {
+                        "MaxRuntimeInSeconds": 43200
+                    }
+                }
+            },
+            "Next": "Model_Selection"
+        },
+        "Model_Selection": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+                "FunctionName": "Model_Selection",
+                "Payload": {
+                    "Input.$": "$"
+                }
+            },
+            "Next": "Sagemaker_CreateModel",
+            "OutputPath": "$.Payload"
+        },
+        "Sagemaker_CreateModel": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sagemaker:createModel.sync",
+            "InputPath": "$",
+            "Parameters": {
+                "ModelName.$": "$.selected_model_name",
+                "ExecutionRoleArn": ""
+            },
+            "Next": "Sagemaker_CreateEndpointConfig"
+        },
+        "Sagemaker_CreateEndpointConfig": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sagemaker:createEndpointConfig.sync",
+            "InputPath": "$",
+            "Parameters": {
+                "EndpointConfigName.$": "$.selected_model_name",
+                "ProductionVariants": {
+                    "VariantName": "endpoint",
+                    "ModelName.$": "$.selected_model_name",
+                    "InstanceType": "ml.t2.medium",
+                    "InitialInstanceCount": 1
+                }
+            },
+            "Next": "Sagemaker_CreateEndpoint"
+        },
+        "Sagemaker_CreateEndpoint": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sagemaker:createEndpoint.sync",
+            "InputPath": "$",
+            "Parameters": {
+                "EndpointName.$": "$.selected_model_name",
+                "EndpointConfigName.$": "$.selected_model_name",
+                "ExecutionRoleArn": ""
+            },
+            "Next": "Success"
+        },
+        "Success": {
+            "Type": "Succeed"
+        },
+        "Failure": {
+            "Type": "Pass",
+            "Result": "Exceeded maximum retry",
+            "End": true
+        }
     }
-  }
+}

@@ -130,40 +130,6 @@ module "lambda_input_file_checker_role" {
   ENVIRONMENT  = var.ENVIRONMENT
   name         = "Lambda-Input-File-Checker-Role"
   services     = ["lambda.amazonaws.com"]
-  policy_arns  = [aws_iam_policy.lambda_input_file_checker_role_policy.arn]
-}
-
-resource "aws_iam_policy" "lambda_input_file_checker_role_policy" {
-  name   = "${var.PROJECT_NAME}-${var.ENVIRONMENT}-Lambda-Input-File-Checker-Custom-Policy"
-  path   = "/"
-  policy = "${data.aws_iam_policy_document.lambda_input_file_checker_role_policy_document.json}"
-}
-
-data "aws_iam_policy_document" "lambda_input_file_checker_role_policy_document" {
-  statement {
-    sid = "s3"
-
-    actions = [
-      "s3:*"
-    ]
-
-    resources = [
-      "arn:aws:s3:::${var.S3_BUCKET_NAME}",
-      "arn:aws:s3:::${var.S3_BUCKET_NAME}/*",
-    ]
-  }
-
-  statement {
-    sid = "logs"
-
-    actions = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:PutLogEvents"
-    ]
-
-    resources = [
-      "*"
-    ]
-  }
+  policy_arns  = [aws_iam_policy.s3_data_bucket_role_policy.arn,
+                  aws_iam_policy.cloudwatch_logger_role_policy.arn]
 }

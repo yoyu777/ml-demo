@@ -8,7 +8,43 @@ import os
 S3_BUCKET_NAME=os.environ['S3_BUCKET_NAME']
 REGION=os.environ['REGION']
 
+boto3.setup_default_session(region_name=REGION)
+
+class InsufficientKeys(Exception):
+    pass
+
 def run(event,content):
-    timestamp=event['timestamp']
+    print(json.dumps(event))
+    timestamp=event['Input']['timestamp']
     print(timestamp)
-    return 
+
+    key_list = [
+       'deals-%s.csv' % timestamp,
+       'price-%s.csv' % timestamp
+    ]
+
+    keys_found=[]
+    
+    for key in key_list:
+        client = boto3.client('s3')
+        response = client.list_objects(
+            Bucket=S3_BUCKET_NAME,
+            Prefix=key
+        )
+        
+        if 'Contents' in response and len(response['Contents'])>0:
+            keys_found.append(key)
+        else:
+            break
+    
+    response_message='Expecting %s keys, found %s' % (len(key_list),len(keys_found))
+
+    print(response_message)
+
+    if len(key_list)==len(keys_found):
+        return {
+            "deals":'deals-%s.csv' % timestamp,
+            "price":'price-%s.csv' % timestamp
+        }
+    else:
+        raise InsufficientKeys(response_message)

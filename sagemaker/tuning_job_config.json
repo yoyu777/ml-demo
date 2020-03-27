@@ -1,0 +1,53 @@
+{
+    "ParameterRanges": {
+      "CategoricalParameterRanges": [
+        { 
+            "Name": "use_bias",
+            "Values": [ "true","false" ]
+        }
+      ],
+      "ContinuousParameterRanges": [
+        {
+          "MaxValue": "1",
+          "MinValue": "0.0000001",
+          "ScalingType":"Logarithmic",
+          "Name": "l1"
+        },
+        {
+          "MaxValue": "1",
+          "MinValue": "0.00001",
+          "ScalingType":"Logarithmic",
+          "Name": "learning_rate"
+        },
+        {
+          "MaxValue": "10000",
+          "MinValue": "0.00001",
+          "ScalingType":"Logarithmic",
+          "Name": "positive_example_weight_mult"
+        },
+        {
+          "MaxValue": "1",
+          "MinValue": "0.0000001",
+          "ScalingType":"Logarithmic",
+          "Name": "wd"
+        }
+      ],
+      "IntegerParameterRanges": [
+        {
+          "MaxValue": "1000",
+          "MinValue": "100",
+          "ScalingType":"Logarithmic",
+          "Name": "mini_batch_size"
+        }
+      ]
+    },
+    "ResourceLimits": {
+      "MaxNumberOfTrainingJobs": 10,
+      "MaxParallelTrainingJobs": 2
+    },
+    "Strategy": "Bayesian",
+    "HyperParameterTuningJobObjective": {
+      "MetricName": "test:binary_f_beta",
+      "Type": "Maximize"
+    }
+  }
