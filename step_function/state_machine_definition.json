@@ -50,7 +50,7 @@
             "Resource": "arn:aws:states:::sagemaker:createHyperParameterTuningJob.sync",
             "InputPath": "$",
             "Parameters": {
-                "HyperParameterTuningJobName": "$$.Execution.Name",
+                "HyperParameterTuningJobName.$": "$.CompletedOn",
                 "HyperParameterTuningJobConfig": {
                     "ParameterRanges": {
                         "CategoricalParameterRanges": [
@@ -155,7 +155,7 @@
                         "InstanceType": "ml.c4.xlarge",
                         "VolumeSizeInGB": 10
                     },
-                    "RoleArn": "",
+                    "RoleArn": "arn:aws:iam::814948925568:role/mldemo-dev-Sagemaker-Execution-Role",
                     "StaticHyperParameters": {
                         "feature_dim": "605",
                         "epochs": "15",
@@ -190,7 +190,7 @@
             "InputPath": "$",
             "Parameters": {
                 "ModelName.$": "$.selected_model_name",
-                "ExecutionRoleArn": ""
+                "ExecutionRoleArn": "arn:aws:iam::814948925568:role/mldemo-dev-Sagemaker-Execution-Role"
             },
             "Next": "Sagemaker_CreateEndpointConfig"
         },
@@ -216,7 +216,7 @@
             "Parameters": {
                 "EndpointName.$": "$.selected_model_name",
                 "EndpointConfigName.$": "$.selected_model_name",
-                "ExecutionRoleArn": ""
+                "ExecutionRoleArn": "arn:aws:iam::814948925568:role/mldemo-dev-Sagemaker-Execution-Role"
             },
             "Next": "Success"
         },

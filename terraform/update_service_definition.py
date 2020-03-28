@@ -14,7 +14,6 @@ config = configparser.ConfigParser()
 
 config.read(cwd.parent.joinpath('project_config.cfg'))
 base_layer_outputs=json.load(open(cwd.joinpath('base/outputs.json')))
-service_layer_outputs=json.load(open(cwd.joinpath('service/outputs.json')))
 
 
 
@@ -25,9 +24,17 @@ GLUE_BUCKET_NAME=base_layer_outputs['GLUE_BUCKET_NAME']['value']
 SECRET_ARN=base_layer_outputs['SECRET_ARN']['value']
 SECRET_NAME=base_layer_outputs['SECRET_NAME']['value']
 
-SAGEMAKER_EXECUTION_ROLE_ARN=''
-# service_layer_outputs['SAGEMAKER_EXECUTION_ROLE_ARN']['value']
 
+
+if cwd.joinpath('service/outputs.json').exists():   # This script may be run before the creation of service layer
+    service_layer_outputs=json.load(open(cwd.joinpath('service/outputs.json')))
+else:
+    service_layer_outputs={}
+
+if 'SAGEMAKER_EXECUTION_ROLE_ARN' in service_layer_outputs:
+    SAGEMAKER_EXECUTION_ROLE_ARN=service_layer_outputs['SAGEMAKER_EXECUTION_ROLE_ARN']['value']
+else:
+    SAGEMAKER_EXECUTION_ROLE_ARN=''
 
 
 # Updating service/terraform.tfvars 
