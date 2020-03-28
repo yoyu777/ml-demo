@@ -52,6 +52,18 @@ resource "aws_iam_policy" "state_machine_role_policy" {
 
 data "aws_iam_policy_document" "state_machine_role_policy_document" {
   statement {
+    sid = "lambda"
+
+    actions = [
+      "lambda:*"
+    ]
+
+    resources = [
+      "arn:aws:lambda:${var.REGION}:${data.aws_caller_identity.current.account_id}:function:${var.PROJECT_NAME}-${var.ENVIRONMENT}-*"
+    ]
+  }
+
+  statement {
     sid = "glue"
 
     actions = [
