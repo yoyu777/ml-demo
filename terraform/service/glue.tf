@@ -50,5 +50,6 @@ module "glue_job_role" {
   ENVIRONMENT  = var.ENVIRONMENT
   name         = "Glue-Job-Role"
   services     = ["glue.amazonaws.com"]
-  policy_arns  = ["arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"]
+  policy_arns  = ["arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole",
+                  aws_iam_policy.s3_data_bucket_role_policy.arn]
 }
