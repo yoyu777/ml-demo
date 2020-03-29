@@ -42,7 +42,7 @@
       ]
     },
     "ResourceLimits": {
-      "MaxNumberOfTrainingJobs": 10,
+      "MaxNumberOfTrainingJobs": 2,
       "MaxParallelTrainingJobs": 2
     },
     "Strategy": "Bayesian",
