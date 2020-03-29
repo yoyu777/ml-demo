@@ -7,6 +7,10 @@ from pathlib import Path
 
 from sagemaker.amazon.amazon_estimator import get_image_uri
 
+from create_tf_config_files import write_config_files
+
+write_config_files('service')
+
 cwd=Path(__file__).parent.absolute()
 
 config = configparser.ConfigParser()
@@ -87,9 +91,9 @@ training_job_definition=json.load(open(training_job_definition_file_path,'r'))
 training_image = get_image_uri(config.get('main','REGION'), 'linear-learner')
 training_job_definition['AlgorithmSpecification']['TrainingImage']=training_image
 
-training_data='s3://{}/{}'.format(S3_BUCKET_NAME, 'training_data.io')
-test_data='s3://{}/{}'.format(S3_BUCKET_NAME, 'test_data.io')
-validation_data='s3://{}/{}'.format(S3_BUCKET_NAME, 'validation_data.io')
+training_data='s3://{}/transformed/{}'.format(S3_BUCKET_NAME, 'training_data.io')
+test_data='s3://{}/transformed/{}'.format(S3_BUCKET_NAME, 'test_data.io')
+validation_data='s3://{}/transformed/{}'.format(S3_BUCKET_NAME, 'validation_data.io')
 
 training_job_definition['InputDataConfig'][0]['DataSource']['S3DataSource']['S3Uri']=training_data
 training_job_definition['InputDataConfig'][1]['DataSource']['S3DataSource']['S3Uri']=test_data
@@ -123,6 +127,7 @@ states['Glue_StartJobRun']['Parameters']['JobName']="%sGlue-ETL-Job" % name_pref
 states['Sagemaker_CreateHyperParameterTuningJob']['Parameters']['HyperParameterTuningJobConfig']=tuning_job_config
 states['Sagemaker_CreateHyperParameterTuningJob']['Parameters']['TrainingJobDefinition']=training_job_definition
 
+states['Model_Selection']['Parameters']['FunctionName']="%sModel-Selection" % name_prefix
 
 states['Sagemaker_CreateModel']['Parameters']['ExecutionRoleArn']=SAGEMAKER_EXECUTION_ROLE_ARN
 
