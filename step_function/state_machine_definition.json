@@ -99,12 +99,12 @@
                         ]
                     },
                     "ResourceLimits": {
-                        "MaxNumberOfTrainingJobs": 2,
+                        "MaxNumberOfTrainingJobs": 10,
                         "MaxParallelTrainingJobs": 2
                     },
                     "Strategy": "Bayesian",
                     "HyperParameterTuningJobObjective": {
-                        "MetricName": "test:binary_f_beta",
+                        "MetricName": "test:precision",
                         "Type": "Maximize"
                     }
                 },
@@ -245,7 +245,7 @@
             "Catch": [
                 {
                     "ErrorEquals": [
-                        "States.ALL"
+                        "SageMaker.AmazonSageMakerException"
                     ],
                     "ResultPath": "$.error",
                     "Next": "Sagemaker_CreateEndpoint"
