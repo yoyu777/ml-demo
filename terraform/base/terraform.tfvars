@@ -1,3 +1,3 @@
 PROJECT_NAME = "mldemo"
-ENVIRONMENT = "dev"
+ENVIRONMENT = "test"
 REGION = "eu-west-2"
