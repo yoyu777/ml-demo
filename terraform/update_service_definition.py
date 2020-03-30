@@ -131,9 +131,6 @@ states['Model_Selection']['Parameters']['FunctionName']="%sModel-Selection" % na
 
 states['Sagemaker_CreateModel']['Parameters']['ExecutionRoleArn']=SAGEMAKER_EXECUTION_ROLE_ARN
 
-states['Sagemaker_CreateEndpoint']['Parameters']['ExecutionRoleArn']=SAGEMAKER_EXECUTION_ROLE_ARN
-
-
 json.dump(state_machine_definition, open(state_machine_definition_file_path,'w'))
 
 pass
