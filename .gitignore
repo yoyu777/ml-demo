@@ -7,3 +7,8 @@ dev/logs/*
 dev/data/*
 .vscode
 data/*
+
+sagemaker/training_job_definition.json
+step_function/state_machine_definition.json
+terraform/base/terraform.tfvars
+terraform/service/terraform.tfvars
