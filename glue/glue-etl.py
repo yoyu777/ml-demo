@@ -115,9 +115,9 @@ def create_datasets(all_data,labels):
     logger.warn('Creating datasets')
     count=len(all_data)
 
-    training=math.floor(0.7*count)
-    validation=math.floor(0.15*count)
-    test=math.floor(0.15*count)
+    training=math.floor(0.6*count)
+    validation=math.floor(0.2*count)
+    test=math.floor(0.2*count)
 
     datasets={
         'training':{},
