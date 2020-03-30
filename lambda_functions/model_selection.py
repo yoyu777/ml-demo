@@ -1,3 +1,5 @@
+import os
+
 PROJECT_NAME=os.environ['PROJECT_NAME']
 ENVIRONMENT=os.environ['ENVIRONMENT']
 
