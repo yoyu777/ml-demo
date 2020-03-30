@@ -40,7 +40,8 @@
                 "JobName": "mldemo-dev-Glue-ETL-Job",
                 "Arguments": {
                     "--deal_data_key.$": "$.deals",
-                    "--price_data_key.$": "$.price"
+                    "--price_data_key.$": "$.price",
+                    "identifier.$": "$.identifier"
                 }
             },
             "Next": "Sagemaker_CreateHyperParameterTuningJob"
@@ -50,7 +51,7 @@
             "Resource": "arn:aws:states:::sagemaker:createHyperParameterTuningJob.sync",
             "InputPath": "$",
             "Parameters": {
-                "HyperParameterTuningJobName": "$$.Execution.Name",
+                "HyperParameterTuningJobName.$": "$.Arguments.identifier",
                 "HyperParameterTuningJobConfig": {
                     "ParameterRanges": {
                         "CategoricalParameterRanges": [
@@ -98,7 +99,7 @@
                         ]
                     },
                     "ResourceLimits": {
-                        "MaxNumberOfTrainingJobs": 10,
+                        "MaxNumberOfTrainingJobs": 2,
                         "MaxParallelTrainingJobs": 2
                     },
                     "Strategy": "Bayesian",
@@ -120,7 +121,7 @@
                                 "S3DataSource": {
                                     "S3DataDistributionType": "FullyReplicated",
                                     "S3DataType": "S3Prefix",
-                                    "S3Uri": "s3://bucket-mldemo-dev-20200327141354666900000003/training_data.io"
+                                    "S3Uri": "s3://bucket-mldemo-dev-20200327141354666900000003/transformed/training_data.io"
                                 }
                             }
                         },
@@ -131,7 +132,7 @@
                                 "S3DataSource": {
                                     "S3DataDistributionType": "FullyReplicated",
                                     "S3DataType": "S3Prefix",
-                                    "S3Uri": "s3://bucket-mldemo-dev-20200327141354666900000003/test_data.io"
+                                    "S3Uri": "s3://bucket-mldemo-dev-20200327141354666900000003/transformed/test_data.io"
                                 }
                             }
                         },
@@ -142,7 +143,7 @@
                                 "S3DataSource": {
                                     "S3DataDistributionType": "FullyReplicated",
                                     "S3DataType": "S3Prefix",
-                                    "S3Uri": "s3://bucket-mldemo-dev-20200327141354666900000003/validation_data.io"
+                                    "S3Uri": "s3://bucket-mldemo-dev-20200327141354666900000003/transformed/validation_data.io"
                                 }
                             }
                         }
@@ -155,7 +156,7 @@
                         "InstanceType": "ml.c4.xlarge",
                         "VolumeSizeInGB": 10
                     },
-                    "RoleArn": "",
+                    "RoleArn": "arn:aws:iam::814948925568:role/mldemo-dev-Sagemaker-Execution-Role",
                     "StaticHyperParameters": {
                         "feature_dim": "605",
                         "epochs": "15",
@@ -176,47 +177,68 @@
             "Type": "Task",
             "Resource": "arn:aws:states:::lambda:invoke",
             "Parameters": {
-                "FunctionName": "Model_Selection",
-                "Payload": {
-                    "Input.$": "$"
-                }
+                "FunctionName": "mldemo-dev-Model-Selection",
+                "Payload.$": "$"
             },
+            "Retry": [
+                {
+                    "ErrorEquals": [
+                        "States.ALL"
+                    ],
+                    "IntervalSeconds": 1,
+                    "MaxAttempts": 4,
+                    "BackoffRate": 2
+                }
+            ],
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.ALL"
+                    ],
+                    "Next": "Failure"
+                }
+            ],
             "Next": "Sagemaker_CreateModel",
             "OutputPath": "$.Payload"
         },
         "Sagemaker_CreateModel": {
             "Type": "Task",
-            "Resource": "arn:aws:states:::sagemaker:createModel.sync",
+            "Resource": "arn:aws:states:::sagemaker:createModel",
             "InputPath": "$",
             "Parameters": {
-                "ModelName.$": "$.selected_model_name",
-                "ExecutionRoleArn": ""
+                "ModelName.$": "$.model_name",
+                "PrimaryContainer": {
+                    "Image.$": "$.image",
+                    "ModelDataUrl.$": "$.model_data_url"
+                },
+                "ExecutionRoleArn": "arn:aws:iam::814948925568:role/mldemo-dev-Sagemaker-Execution-Role"
             },
-            "Next": "Sagemaker_CreateEndpointConfig"
+            "Next": "Sagemaker_CreateEndpointConfig",
+            "ResultPath": "$.taskresult"
         },
         "Sagemaker_CreateEndpointConfig": {
             "Type": "Task",
-            "Resource": "arn:aws:states:::sagemaker:createEndpointConfig.sync",
+            "Resource": "arn:aws:states:::sagemaker:createEndpointConfig",
             "InputPath": "$",
             "Parameters": {
-                "EndpointConfigName.$": "$.selected_model_name",
-                "ProductionVariants": {
+                "EndpointConfigName.$": "$.model_name",
+                "ProductionVariants": [{
                     "VariantName": "endpoint",
-                    "ModelName.$": "$.selected_model_name",
+                    "ModelName.$": "$.model_name",
                     "InstanceType": "ml.t2.medium",
                     "InitialInstanceCount": 1
-                }
+                }]
             },
+            "ResultPath": "$.taskresult",
             "Next": "Sagemaker_CreateEndpoint"
         },
         "Sagemaker_CreateEndpoint": {
             "Type": "Task",
-            "Resource": "arn:aws:states:::sagemaker:createEndpoint.sync",
+            "Resource": "arn:aws:states:::sagemaker:createEndpoint",
             "InputPath": "$",
             "Parameters": {
-                "EndpointName.$": "$.selected_model_name",
-                "EndpointConfigName.$": "$.selected_model_name",
-                "ExecutionRoleArn": ""
+                "EndpointName.$": "$.model_name",
+                "EndpointConfigName.$": "$.model_name"
             },
             "Next": "Success"
         },

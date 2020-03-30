@@ -21,7 +21,7 @@ def run(event,content):
     key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'])
     print('Found new object %s' % key)
 
-    if m:=re.match(r"\w*-(\d*).csv",key):
+    if m:=re.match(r"staging/\w*-(\d*).csv",key):
         print("Found timestamp: %s" % m.group(1))
         timestamp=m.group(1)
 
@@ -32,7 +32,7 @@ def run(event,content):
         )
 
         # check the status of state machine
-        if(len(sfn_response['executions']) > 1):
+        if(len(sfn_response['executions']) >= 1):
             print('Another job is running. Skip.')
         else:
             sfn_execution_response = step_function.start_execution(
@@ -46,4 +46,5 @@ def run(event,content):
 
             return timestamp
 
-    return 
+    else:
+        raise Exception('Key does not match pattern')

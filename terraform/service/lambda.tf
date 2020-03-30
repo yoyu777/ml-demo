@@ -40,6 +40,29 @@ resource "aws_lambda_function" "input_file_checker" {
     variables = {
       S3_BUCKET_NAME = var.S3_BUCKET_NAME
       REGION = var.REGION
+      PROJECT_NAME = var.PROJECT_NAME
+      ENVIRONMENT = var.ENVIRONMENT
+    }
+  }
+
+  tags = {
+    Project     = var.PROJECT_NAME
+    Environment = var.ENVIRONMENT
+  }
+}
+
+resource "aws_lambda_function" "model_selection" {
+  filename      = "../../lambda_functions/archive.zip"
+  source_code_hash = data.archive_file.lambda_functions.output_base64sha256
+  function_name = "${var.PROJECT_NAME}-${var.ENVIRONMENT}-Model-Selection"
+  role          = module.lambda_model_selection_role.arn
+  handler       = "model_selection.run"
+  runtime       = "python3.8"
+
+  environment {
+    variables = {
+      S3_BUCKET_NAME = var.S3_BUCKET_NAME
+      REGION = var.REGION
     }
   }
 
@@ -68,6 +91,7 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
   lambda_function {
     lambda_function_arn = "${aws_lambda_function.object_watcher.arn}"
     events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "staging/"
   }
 
   depends_on = [aws_lambda_permission.allow_bucket]
@@ -82,43 +106,10 @@ module "lambda_object_watcher_role" {
   ENVIRONMENT  = var.ENVIRONMENT
   name         = "Lambda-Object-Watcher-Role"
   services     = ["lambda.amazonaws.com"]
-  policy_arns  = [aws_iam_policy.lambda_object_watcher_role_policy.arn]
+  policy_arns  = [aws_iam_policy.lambda_object_watcher_role_policy.arn,
+                  aws_iam_policy.cloudwatch_logger_role_policy.arn]
 }
 
-resource "aws_iam_policy" "lambda_object_watcher_role_policy" {
-  name   = "${var.PROJECT_NAME}-${var.ENVIRONMENT}-Lambda-Object-Watcher-Custom-Policy"
-  path   = "/"
-  policy = "${data.aws_iam_policy_document.lambda_object_watcher_role_policy_document.json}"
-}
-
-data "aws_iam_policy_document" "lambda_object_watcher_role_policy_document" {
-   statement {
-    sid = "logs"
-
-    actions = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:PutLogEvents"
-    ]
-
-    resources = [
-      "*"
-    ]
-  }
-
-  statement {
-    sid = "stepfunction"
-
-    actions = [
-      "states:*"
-    ]
-
-    resources = [
-      aws_sfn_state_machine.sfn_state_machine.id
-    ]
-  }
-
-}
 
 // Lambda-Input-File-Checker-Role
 
@@ -131,5 +122,20 @@ module "lambda_input_file_checker_role" {
   name         = "Lambda-Input-File-Checker-Role"
   services     = ["lambda.amazonaws.com"]
   policy_arns  = [aws_iam_policy.s3_data_bucket_role_policy.arn,
+                  aws_iam_policy.cloudwatch_logger_role_policy.arn]
+}
+
+
+// Lambda-Model-Selection-Role
+
+
+module "lambda_model_selection_role" {
+  source = "../modules/iam_role"
+
+  PROJECT_NAME = var.PROJECT_NAME
+  ENVIRONMENT  = var.ENVIRONMENT
+  name         = "Lambda-Model-Selection-Role"
+  services     = ["lambda.amazonaws.com"]
+  policy_arns  = [aws_iam_policy.state_machine_role_policy.arn,
                   aws_iam_policy.cloudwatch_logger_role_policy.arn]
 }
