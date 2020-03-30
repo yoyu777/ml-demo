@@ -1,3 +1,8 @@
+import os
+
+PROJECT_NAME=os.environ['PROJECT_NAME']
+ENVIRONMENT=os.environ['ENVIRONMENT']
+
 def run(event,context):
     print(event)
     if 'HyperParameterTuningJobStatus' in event and event['HyperParameterTuningJobStatus']=='Completed':
@@ -8,7 +13,8 @@ def run(event,context):
         return {
             "model_name":best_job_name,
             "image":image,
-            "model_data_url":'%s/%s/output/model.tar.gz' % (output_path,best_job_name)
+            "model_data_url":'%s/%s/output/model.tar.gz' % (output_path,best_job_name),
+            "endpoint_identifier":'%s-%s' % (PROJECT_NAME,ENVIRONMENT)
         }
 
     else:

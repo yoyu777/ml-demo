@@ -63,6 +63,8 @@ resource "aws_lambda_function" "model_selection" {
     variables = {
       S3_BUCKET_NAME = var.S3_BUCKET_NAME
       REGION = var.REGION
+      PROJECT_NAME = var.PROJECT_NAME
+      ENVIRONMENT = var.ENVIRONMENT
     }
   }
 

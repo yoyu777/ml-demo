@@ -222,22 +222,44 @@
             "InputPath": "$",
             "Parameters": {
                 "EndpointConfigName.$": "$.model_name",
-                "ProductionVariants": [{
-                    "VariantName": "endpoint",
-                    "ModelName.$": "$.model_name",
-                    "InstanceType": "ml.t2.medium",
-                    "InitialInstanceCount": 1
-                }]
+                "ProductionVariants": [
+                    {
+                        "VariantName": "endpoint",
+                        "ModelName.$": "$.model_name",
+                        "InstanceType": "ml.t2.medium",
+                        "InitialInstanceCount": 1
+                    }
+                ]
             },
             "ResultPath": "$.taskresult",
-            "Next": "Sagemaker_CreateEndpoint"
+            "Next": "Sagemaker_UpdateEndpoint"
+        },
+        "Sagemaker_UpdateEndpoint": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sagemaker:updateEndpoint",
+            "InputPath": "$",
+            "Parameters": {
+                "EndpointName.$": "$.endpoint_identifier",
+                "EndpointConfigName.$": "$.model_name"
+            },
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.ALL"
+                    ],
+                    "ResultPath": "$.error",
+                    "Next": "Sagemaker_CreateEndpoint"
+                }
+            ],
+            "ResultPath": "$.taskresult",
+            "Next": "Success"
         },
         "Sagemaker_CreateEndpoint": {
             "Type": "Task",
             "Resource": "arn:aws:states:::sagemaker:createEndpoint",
             "InputPath": "$",
             "Parameters": {
-                "EndpointName.$": "$.model_name",
+                "EndpointName.$": "$.endpoint_identifier",
                 "EndpointConfigName.$": "$.model_name"
             },
             "Next": "Success"
