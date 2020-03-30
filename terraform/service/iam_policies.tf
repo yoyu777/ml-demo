@@ -52,6 +52,18 @@ resource "aws_iam_policy" "state_machine_role_policy" {
 
 data "aws_iam_policy_document" "state_machine_role_policy_document" {
   statement {
+    sid = "lambda"
+
+    actions = [
+      "lambda:*"
+    ]
+
+    resources = [
+      "arn:aws:lambda:${var.REGION}:${data.aws_caller_identity.current.account_id}:function:${var.PROJECT_NAME}-${var.ENVIRONMENT}-*"
+    ]
+  }
+
+  statement {
     sid = "glue"
 
     actions = [
@@ -110,4 +122,27 @@ data "aws_iam_policy_document" "state_machine_role_policy_document" {
     ]
   }
   
+}
+
+// Object Watcher policy
+
+resource "aws_iam_policy" "lambda_object_watcher_role_policy" {
+  name   = "${var.PROJECT_NAME}-${var.ENVIRONMENT}-Lambda-Object-Watcher-Custom-Policy"
+  path   = "/"
+  policy = "${data.aws_iam_policy_document.lambda_object_watcher_role_policy_document.json}"
+}
+
+data "aws_iam_policy_document" "lambda_object_watcher_role_policy_document" {
+  statement {
+    sid = "stepfunction"
+
+    actions = [
+      "states:*"
+    ]
+
+    resources = [
+      aws_sfn_state_machine.sfn_state_machine.id
+    ]
+  }
+
 }

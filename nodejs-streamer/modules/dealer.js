@@ -275,7 +275,7 @@ class Dealer{
                             await this.s3.putObject({
                                 Body: csv, 
                                 Bucket: bucket, 
-                                Key: 'deals-'+timestamp_now+'.csv'
+                                Key: 'staging/deals-'+timestamp_now+'.csv'
                             }).promise()
 
                             console.info('Exported deals as CSV')
@@ -318,7 +318,7 @@ class Dealer{
                             await this.s3.putObject({
                                 Body: price_csv, 
                                 Bucket: bucket, 
-                                Key: 'price-'+timestamp_now+'.csv'
+                                Key: 'staging/price-'+timestamp_now+'.csv'
                             }).promise()
 
                             console.info('Exported prices as CSV')

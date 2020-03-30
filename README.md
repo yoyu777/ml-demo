@@ -1,5 +1,11 @@
 
 
+```
+virtualenv --python=python3.8 .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
 
 
 
@@ -18,6 +24,9 @@ aws iam create-service-linked-role --aws-service-name ecs.amazonaws.com
 
 
 sh deploy.sh
+
+
+> AccessDeniedException: Neither the global service principal states.amazonaws.com, nor the regional one is authorized to assume the provided role.
 
 
 3)

@@ -7,6 +7,8 @@ import os
 
 S3_BUCKET_NAME=os.environ['S3_BUCKET_NAME']
 REGION=os.environ['REGION']
+PROJECT_NAME=os.environ['PROJECT_NAME']
+ENVIRONMENT=os.environ['ENVIRONMENT']
 
 boto3.setup_default_session(region_name=REGION)
 
@@ -19,8 +21,8 @@ def run(event,content):
     print(timestamp)
 
     key_list = [
-       'deals-%s.csv' % timestamp,
-       'price-%s.csv' % timestamp
+       'staging/deals-%s.csv' % timestamp,
+       'staging/price-%s.csv' % timestamp
     ]
 
     keys_found=[]
@@ -44,7 +46,8 @@ def run(event,content):
     if len(key_list)==len(keys_found):
         return {
             "deals":'deals-%s.csv' % timestamp,
-            "price":'price-%s.csv' % timestamp
+            "price":'price-%s.csv' % timestamp,
+            "identifier":'%s-%s-%s' % (PROJECT_NAME,ENVIRONMENT,timestamp)
         }
     else:
         raise InsufficientKeys(response_message)
