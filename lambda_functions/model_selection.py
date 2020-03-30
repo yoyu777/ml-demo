@@ -1,3 +1,6 @@
+PROJECT_NAME=os.environ['PROJECT_NAME']
+ENVIRONMENT=os.environ['ENVIRONMENT']
+
 def run(event,context):
     print(event)
     if 'HyperParameterTuningJobStatus' in event and event['HyperParameterTuningJobStatus']=='Completed':
