@@ -47,7 +47,7 @@
     },
     "Strategy": "Bayesian",
     "HyperParameterTuningJobObjective": {
-      "MetricName": "test:binary_f_beta",
+      "MetricName": "test:precision",
       "Type": "Maximize"
     }
   }
