@@ -132,10 +132,16 @@ class Dealer{
                 }
                 stop_updates.push(update) 
             },async ()=>{
-                if(stop_updates.length>0){
-                    let result=await this.orders.bulkWrite(stop_updates)
-                    console.debug(result.modifiedCount+' records updated')
+                try{
+                    if(stop_updates.length>0){
+                        let result=await this.orders.bulkWrite(stop_updates)
+                        console.debug(result.modifiedCount+' records updated')
+                    }
                 }
+                catch(e){
+                    console.error(e)
+                }
+                    
             })
             
             let limit_triggered=this.orders.find({
@@ -181,10 +187,15 @@ class Dealer{
                 }
                 limit_updates.push(update) 
             },async ()=>{
-                if(limit_updates.length>0){
-                    let result= await this.orders.bulkWrite(limit_updates)
-                    console.debug(result.modifiedCount+' records updated')
+                try{
+                    if(limit_updates.length>0){
+                        let result= await this.orders.bulkWrite(limit_updates)
+                        console.debug(result.modifiedCount+' records updated')
+                    }
+                }catch(e){
+                    console.error(e)
                 }
+                
             })
         
             
@@ -231,99 +242,107 @@ class Dealer{
                 fulfilled.count()
                     .then(async count=> {
                         if(count>this.MAX_RECORDS){
-                            console.info('Exporting '+count+' records...')
-                            this.exporting=true
+                            try{
+                                console.info('Exporting '+count+' records...')
+                                this.exporting=true
 
-                            let bucket=this.S3_BUCKET_NAME
-                            let timestamp_now=Date.now()
+                                let bucket=this.S3_BUCKET_NAME
+                                let timestamp_now=Date.now()
 
-                            // Exporting deals
+                                // Exporting deals
 
-                            let records=await fulfilled.toArray();
-                            let headers=["timestamp","loss_or_profit","type","stop","limit","price","stop_price","limit_price"]
+                                let records=await fulfilled.toArray();
+                                let headers=["timestamp","loss_or_profit","type","stop","limit","price","stop_price","limit_price"]
 
-                            let updates=[]
-                            let max_timestamp=Number.NEGATIVE_INFINITY,min_timestamp=Number.POSITIVE_INFINITY
+                                let updates=[]
+                                let max_timestamp=Number.NEGATIVE_INFINITY,min_timestamp=Number.POSITIVE_INFINITY
 
-                            let csv_data=records.map(record=>{
-                                updates.push({
-                                    updateOne: {
-                                        filter:{_id:record._id},
-                                        update:{ $set: {
-                                            "fulfilled":true,
-                                            "exported":true
-                                        }}
+                                let csv_data=records.map(record=>{
+                                    updates.push({
+                                        updateOne: {
+                                            filter:{_id:record._id},
+                                            update:{ $set: {
+                                                "fulfilled":true,
+                                                "exported":true
+                                            }}
+                                        }
+                                    })
+
+                                    max_timestamp=record.timestamp>max_timestamp?record.timestamp:max_timestamp
+                                    min_timestamp=record.timestamp<min_timestamp?record.timestamp:min_timestamp
+
+                                    let line_items=[]
+                                    
+                                    headers.map(header=>{
+                                        line_items.push(JSON.stringify(record[header]))
+                                    })
+
+                                    let line=line_items.join(',')
+
+                                    return line
+                                })
+
+                                let csv=csv_data.join('\n')
+                            
+                            
+                                await this.s3.putObject({
+                                    Body: csv, 
+                                    Bucket: bucket, 
+                                    Key: 'staging/deals-'+timestamp_now+'.csv'
+                                }).promise()
+                            
+
+                                console.info('Exported deals as CSV')
+
+                                
+                                // Flagging deals as exported
+                                let result= await this.orders.bulkWrite(updates)
+                                console.info(result.modifiedCount+' records updated')
+
+                                // Exporting prices
+                                let prices=this.price.find(
+                                    {   
+                                        $and:[  
+                                                {'timestamp': {$gte: min_timestamp-10*60*1000} },
+                                                {'timestamp': {$lte: max_timestamp} },
+                                        ]
+                                    },
+                                    {
+                                        hint: {timestamp:1}
                                     }
-                                })
+                                )
 
-                                max_timestamp=record.timestamp>max_timestamp?record.timestamp:max_timestamp
-                                min_timestamp=record.timestamp<min_timestamp?record.timestamp:min_timestamp
-
-                                let line_items=[]
+                                let price_records=await prices.toArray()
                                 
-                                headers.map(header=>{
-                                    line_items.push(JSON.stringify(record[header]))
+                                let price_csv_data=price_records.map(record=>{
+                                    let headers=["timestamp","BID","OFFER","MID_OPEN","CHANGE","CHANGE_PCT","HIGH","LOW","UPDATE_TIME","MARKET_STATE","MARKET_DELAY"]
+
+                                    let line_items=[]
+                                    
+                                    headers.map(header=>{
+                                        line_items.push(JSON.stringify(record[header]))
+                                    })
+
+                                    let line=line_items.join(',')
+
+                                    return line
                                 })
 
-                                let line=line_items.join(',')
+                                let price_csv=price_csv_data.join('\n')
 
-                                return line
-                            })
+                                await this.s3.putObject({
+                                    Body: price_csv, 
+                                    Bucket: bucket, 
+                                    Key: 'staging/price-'+timestamp_now+'.csv'
+                                }).promise()
 
-                            let csv=csv_data.join('\n')
-                            
-                            await this.s3.putObject({
-                                Body: csv, 
-                                Bucket: bucket, 
-                                Key: 'staging/deals-'+timestamp_now+'.csv'
-                            }).promise()
+                                console.info('Exported prices as CSV')
 
-                            console.info('Exported deals as CSV')
-
-                            // Flagging deals as exported
-                            let result= await this.orders.bulkWrite(updates)
-                            console.info(result.modifiedCount+' records updated')
-
-                            // Exporting prices
-                            let prices=this.price.find(
-                                {   
-                                    $and:[  
-                                            {'timestamp': {$gte: min_timestamp-10*60*1000} },
-                                            {'timestamp': {$lte: max_timestamp} },
-                                    ]
-                                },
-                                {
-                                    hint: {timestamp:1}
-                                }
-                            )
-
-                            let price_records=await prices.toArray()
-                            
-                            let price_csv_data=price_records.map(record=>{
-                                let headers=["timestamp","BID","OFFER","MID_OPEN","CHANGE","CHANGE_PCT","HIGH","LOW","UPDATE_TIME","MARKET_STATE","MARKET_DELAY"]
-
-                                let line_items=[]
-                                
-                                headers.map(header=>{
-                                    line_items.push(JSON.stringify(record[header]))
-                                })
-
-                                let line=line_items.join(',')
-
-                                return line
-                            })
-
-                            let price_csv=price_csv_data.join('\n')
-
-                            await this.s3.putObject({
-                                Body: price_csv, 
-                                Bucket: bucket, 
-                                Key: 'staging/price-'+timestamp_now+'.csv'
-                            }).promise()
-
-                            console.info('Exported prices as CSV')
-
-                            this.exporting=false
+                                this.exporting=false
+                            }   // end try
+                            catch(e){
+                                console.error(e)
+                            }   // end try catch
 
                         }   // end exporting
                     })  // end fulfilled.count
