@@ -45,6 +45,7 @@ def get_deal_data(deal_data_path):
     query='type=="buy" & stop==10'
     logger.warn('Getting qualified deals - %s' % query)
     qualified_deals=deals.query(query)
+
     return qualified_deals
 
 def get_price_data(price_data_path):
@@ -61,10 +62,18 @@ def get_price_data(price_data_path):
 
 def join_deals_with_price(qualified_deals,price):
     logger.warn('Joining deals with price')
-    deals_with_price=pd.merge(qualified_deals, price,how="inner",on="timestamp",sort=True)
+    deals_with_price=pd.merge(qualified_deals, price,how="left",on="timestamp",sort=True)
 
     # Calculating MID price, the average of BID and OFFER
     deals_with_price['MID']=(deals_with_price['BID']+deals_with_price['OFFER'])/2
+
+     # deduplicate
+
+    duplicated=deals_with_price[deals_with_price.duplicated(subset='timestamp',keep='first')]
+
+    deals_with_price.drop(duplicated.index,inplace=True)
+    
+    deals_with_price.reset_index(inplace=True)
 
     return deals_with_price
 
