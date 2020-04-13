@@ -42,7 +42,7 @@ def get_deal_data(deal_data_path):
         }
     )
 
-    query='type=="buy" & stop==10'
+    query='type=="buy"'
     logger.warn('Getting qualified deals - %s' % query)
     qualified_deals=deals.query(query)
 
