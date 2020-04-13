@@ -1,11 +1,5 @@
 {
     "ParameterRanges": {
-      "CategoricalParameterRanges": [
-        { 
-            "Name": "use_bias",
-            "Values": [ "true","false" ]
-        }
-      ],
       "ContinuousParameterRanges": [
         {
           "MaxValue": "1",
