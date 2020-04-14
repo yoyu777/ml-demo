@@ -14,12 +14,6 @@
           "Name": "learning_rate"
         },
         {
-          "MaxValue": "10000",
-          "MinValue": "0.00001",
-          "ScalingType":"Logarithmic",
-          "Name": "positive_example_weight_mult"
-        },
-        {
           "MaxValue": "1",
           "MinValue": "0.0000001",
           "ScalingType":"Logarithmic",
