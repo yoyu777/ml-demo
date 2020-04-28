@@ -4,7 +4,7 @@ This is a demo of using Sagemaker for automated model training and hyperparamete
 
 ## Architecture Overview
 
-![ML Demo - HLD](/Users/yoyuli/Documents/Code/ig-demo/ML Demo - HLD.png)
+![ML Demo - HLD](ML Demo - HLD.png)
 
 ## Directory Structure
 
