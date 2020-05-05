@@ -29,6 +29,7 @@ pip install -r requirements.txt # install Python dependencies
 ```
 
 2) Modify `project_config.cfg` if necessary. 
+You may also want to modify the variables in `terraform/state-bucket/main.tf` (TODO: automate this).
 
 3) Create a Service Linked Role for ECS using CLI. You may already have this role created if you used ECS in the AWS account before. 
 
