@@ -35,7 +35,7 @@
     },
     "Strategy": "Bayesian",
     "HyperParameterTuningJobObjective": {
-      "MetricName": "test:precision",
+      "MetricName": "validation:precision",
       "Type": "Maximize"
     }
   }
