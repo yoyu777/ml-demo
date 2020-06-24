@@ -1,7 +1,0 @@
-PROJECT_NAME = "mldemo"
-ENVIRONMENT = "test"
-REGION = "eu-west-2"
-S3_BUCKET_NAME = "bucket-mldemo-test-20200330083758476200000003"
-S3_BUCKET_ARN = "arn:aws:s3:::bucket-mldemo-test-20200330083758476200000003"
-SECRET_ARN = "arn:aws:secretsmanager:eu-west-2:814948925568:secret:secret-mldemo-test-20200330083758436100000002-rhTrqT"
-GLUE_BUCKET_NAME = "aws-glue-mldemo-test-20200330083758431400000001"

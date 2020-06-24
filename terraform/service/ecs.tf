@@ -1,5 +1,5 @@
 resource "aws_ecs_task_definition" "data_collector" {
-  family                   = "ml-demo"
+  family                   = "ml-demo-${var.ENVIRONMENT}"
   container_definitions    = "${file("data-collector-container-definition.json")}"
   task_role_arn            = aws_iam_role.task_role.arn
   execution_role_arn       = aws_iam_role.task_role.arn
