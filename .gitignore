@@ -12,3 +12,5 @@ sagemaker/training_job_definition.json
 step_function/state_machine_definition.json
 terraform/base/terraform.tfvars
 terraform/service/terraform.tfvars
+
+project_config.cfg
