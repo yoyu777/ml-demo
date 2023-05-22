@@ -1,5 +1,5 @@
 pathlib
-requests==2.23.0
+requests==2.31.0
 
 boto3==1.12.18
 s3fs==0.4.0
